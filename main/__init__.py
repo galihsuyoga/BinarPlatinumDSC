@@ -16,7 +16,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.json_encoder = LazyJSONEncoder
 
-DB_URI = 'sqlite:///' + os.path.join(basedir, 'database/gold.db')
+DB_URI = 'sqlite:///' + os.path.join(basedir, 'database/platinum.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
