@@ -14,5 +14,11 @@ front = Blueprint('front', __name__, template_folder='templates', static_folder=
 
 
 @front.route('/')
-def index_page():
-    return "index bro"
+def index():
+    return render_template('frontend/index.html')
+
+
+# url redirection to swagger documentation
+@front.route('/swagger_index', methods=['GET'])
+def swagger_index():
+    return redirect(f"{url_for('front.index')}docs/")
