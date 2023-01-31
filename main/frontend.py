@@ -22,3 +22,5 @@ def index():
 @front.route('/swagger_index', methods=['GET'])
 def swagger_index():
     return redirect(f"{url_for('front.index')}docs/")
+
+

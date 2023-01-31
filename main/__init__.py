@@ -9,6 +9,7 @@ from main.model import db
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 # using sqlalchemy so the data can be treated as model
 from flask_sqlalchemy import SQLAlchemy
+from main.platnum_api import api
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -49,3 +50,4 @@ swagger_config = {
 swagger = Swagger(app, template=swagger_template, config=swagger_config)
 
 app.register_blueprint(front)
+app.register_blueprint(api)

@@ -233,3 +233,31 @@ class AlayAbusiveFileLog(db.Model):
     @classmethod
     def foul_type_mixed(cls):
         return cls.__foul_type_mixed
+
+class RawText(db.Model):
+    __tablename__ = 'raw_text'
+
+    id = db.Column(db.Integer().with_variant(db.Integer, "sqlite"), nullable=False, autoincrement=True)
+    kalimat = db.Column(db.String(512), primary_key=True, nullable=False, index=True, default="")
+    sentimen = db.Column(db.String(31), primary_key=True, nullable=False, index=True, default="")
+
+    __sentimen_type_netral = "netral"
+    __sentimen_type_positif = "positif"
+    __sentimen_type_negatif = "negatif"
+
+    def __init__(self, kalimat, sentimen):
+        self.kalimat = kalimat
+        self.sentimen = sentimen
+
+
+    def __repr__(self):
+        return '<RawText %r>' % self.kalimat
+
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.flush()
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
