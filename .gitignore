@@ -119,6 +119,9 @@ Scripts/
 
 env.bak/
 venv.bak/
+share/
+.idea/
+idea/
 
 # Spyder project settings
 .spyderproject

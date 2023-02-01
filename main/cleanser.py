@@ -3,7 +3,35 @@ __author__ = 'GalihSuyoga'
 from main.model.text_processing import Abusive, KamusAlay, TextLog, AlayAbusiveLog, FileTextLog, AlayAbusiveFileLog
 import numpy as np
 import re
+import pandas as pd
+import numpy as np
 
+# Untuk Text processing
+import re
+import nltk
+nltk.download('punkt') # untuk punctuation
+from nltk.tokenize import sent_tokenize, word_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+
+# Machine Learning model
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+
+# Untuk metrics
+from sklearn import metrics
+from mlxtend.plotting import plot_confusion_matrix, plot_decision_regions
+
+# Supaya tidak ada warnings yg mengganggu
+import warnings
+warnings.filterwarnings('ignore')
+
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+listStopword = list(stopwords.words('indonesian'))
 
 emoticons_happy = [
     ':-)', ':)', ';)', ':o)', ':]', ':3', ':c)', ':>', '=]', '8)', '=)', ':}',
@@ -220,3 +248,12 @@ def alay_abusive_log_save(text, clean, word_type, text_id, full):
     else:
         new_log = AlayAbusiveLog(word=text, clean=clean, foul_type=word_string, log_id=text_id)
         new_log.save()
+
+
+# Platinum =======================================================================================================
+
+def text_normalization_on_sentence(text):
+    text = re.sub(r'[^\w\s]|[0-9]', ' ', text)
+    text = text.lower().replace('   ', ' ').replace('  ', ' ')
+
+    return ""
