@@ -1,0 +1,23 @@
+tags:
+  - name: Text Raw data from TSV File to database
+get:
+  description: training data to resulting model
+
+
+
+post:
+  description: TSV Text File to be process the format table cell is text start at index 0 of first column(A)
+  parameters:
+    - in: formData
+      name: text
+      type: string
+      required: true
+      description: The text that want to predict.
+
+responses:
+  '200':
+    description: Successful response
+  '400':
+    description: Bad Request
+  '500':
+    description: Internal Server Error

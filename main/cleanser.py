@@ -1,10 +1,12 @@
 __author__ = 'GalihSuyoga'
 
-from main.model.text_processing import Abusive, KamusAlay, TextLog, AlayAbusiveLog, FileTextLog, AlayAbusiveFileLog
+from main.model.text_processing import Abusive, KamusAlay, TextLog, AlayAbusiveLog, FileTextLog, AlayAbusiveFileLog, RawText
 import numpy as np
 import re
 import pandas as pd
 import numpy as np
+import pickle
+from main.model import db
 
 # Untuk Text processing
 import re
@@ -18,7 +20,7 @@ from sklearn.model_selection import train_test_split
 # Machine Learning model
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier # neural network
 from sklearn.neighbors import KNeighborsClassifier
 
 # Untuk metrics
@@ -32,6 +34,11 @@ warnings.filterwarnings('ignore')
 from nltk.corpus import stopwords
 nltk.download('stopwords')
 listStopword = list(stopwords.words('indonesian'))
+
+__sklearn_regresion = "MLModel/sklearn_regression.pkl"
+__sklearn_mlp = "MLModel/sklearn_MPL.pkl"
+__sklearn_naive_bayes = "MLModel/sklearn_naive_bayes.pkl"
+__sklearn_knn = "MLModel/sklearn_knn.pkl"
 
 emoticons_happy = [
     ':-)', ':)', ';)', ':o)', ':]', ':3', ':c)', ':>', '=]', '8)', '=)', ':}',
@@ -257,3 +264,120 @@ def text_normalization_on_sentence(text):
     text = text.lower().replace('   ', ' ').replace('  ', ' ')
 
     return ""
+
+def text_normalization_on_db_raw_data():
+    df = pd.read_sql_query(
+        sql=db.select([RawText.kalimat, RawText.sentimen]),
+        con=db.engine
+    )
+    # clean stopwords
+    df['kalimat'] = df['kalimat'].str.lower()
+    df['kalimat_bersih'] = df['kalimat'].apply(lambda x: ' '.join([word for word in x.split() if word not in (listStopword)]))
+
+    df['jumlah_kalimat'] = df['kalimat_bersih'].apply(lambda x: len(sent_tokenize(x)))
+    df['jumlah_kata'] = df['kalimat_bersih'].apply(lambda x: len(word_tokenize(x)))
+    df['kalimat_bersih_v2'] = df['kalimat_bersih'].apply(lambda x: re.sub(r'[^\w\s]|[0-9]', ' ', x))
+    df['kalimat_bersih_v2'] = df['kalimat_bersih_v2'].str.replace('    ', ' ').str.replace('   ', ' ').str.replace('  ', ' ')
+    print(df['kalimat_bersih_v2'][:5])
+
+    count_vect = CountVectorizer()
+    count_vect.fit(df['kalimat_bersih_v2'])
+
+    # jumlah unique words
+    word_features = count_vect.get_feature_names_out()
+    print(f"jumlah unique words: {len(word_features)}")
+
+    # Hasil Transformasi
+    transformed = count_vect.transform(df['kalimat_bersih_v2'])
+    X = transformed.toarray()
+    print(f"Hasil transformasi array shape: {X.shape}")
+    X
+
+    tfidf_vect = TfidfVectorizer()
+    tfidf_vect.fit(df['kalimat_bersih_v2'])
+
+    # Hasil Transformasi
+    transformed = tfidf_vect.transform(df['kalimat_bersih_v2'])
+    X = transformed.toarray()
+    print(f"Hasil transformasi array shape: {X.shape}")
+    print(X)
+
+    y = df['sentimen']
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    #modeling
+
+    # regresi
+    model_1 = LogisticRegression()
+    model_1.fit(X_train, y_train)
+    model_1_pred = model_1.predict(X_test)
+    print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
+
+    #gausian naive bayes
+    model_2 = GaussianNB()
+    model_2.fit(X_train, y_train)
+    model_2_pred = model_2.predict(X_test)
+    print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
+
+    # MLP(multi-layer perception)/ neural network
+    model_3 = MLPClassifier()
+    model_3.fit(X_train, y_train)
+    model_3_pred = model_3.predict(X_test)
+    print(f"Accuracy model MLP: {metrics.accuracy_score(y_test, model_3_pred) * 100:.2f}%")
+
+    # knn
+    model_4 = KNeighborsClassifier()
+    model_4.fit(X_train, y_train)
+    model_4_pred = model_4.predict(X_test)
+
+    print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
+
+    d = {"prep": count_vect, "model": model_1}
+    with open(__sklearn_regresion, 'wb') as f:
+        pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_2}
+    with open(__sklearn_naive_bayes, 'wb') as f:
+        pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_3}
+    with open(__sklearn_mlp, 'wb') as f:
+        pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_4}
+    with open(__sklearn_knn, 'wb') as f:
+        pickle.dump(d, f)
+    return ""
+
+def predict_text(text):
+    with open(__sklearn_regresion, 'rb') as f:
+        package = pickle.load(f)
+
+    kalimat_array = package["prep"].transform([text]).toarray()
+    prediksi_reg = package["model"].predict(kalimat_array)[0]
+
+    with open(__sklearn_naive_bayes, 'rb') as f:
+        package = pickle.load(f)
+
+    prediksi_nb = package["model"].predict(kalimat_array)[0]
+
+    with open(__sklearn_knn, 'rb') as f:
+        package = pickle.load(f)
+
+    prediksi_knn = package["model"].predict(kalimat_array)[0]
+
+    with open(__sklearn_mlp, 'rb') as f:
+        package = pickle.load(f)
+
+    prediksi_mlp = package["model"].predict(kalimat_array)[0]
+
+
+    data = {
+        'regresi': str(prediksi_reg),
+        'naive_bayes': str(prediksi_nb),
+        'mlp': str(prediksi_mlp),
+        'knn': str(prediksi_knn),
+    }
+
+    return data

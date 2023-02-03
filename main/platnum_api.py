@@ -8,7 +8,7 @@ from flask import request, Blueprint, jsonify
 from flasgger import swag_from
 from main.model.text_processing import Abusive, KamusAlay, TextLog, FileTextLog, RawText
 # pandas for data manipulation
-from main.cleanser import bersihkan_tweet_dari_file, bersihkan_tweet_dari_text
+from main.cleanser import bersihkan_tweet_dari_file, bersihkan_tweet_dari_text, text_normalization_on_db_raw_data, predict_text
 from sqlalchemy import or_
 import pandas as pd
 
@@ -27,6 +27,27 @@ def text_pre_processing():
         'status_code': 200,
         'raw_text': text,
         'cleaned_text': bersihkan_tweet_dari_text(text)
+    }
+    return jsonify(json_response)
+
+
+@swag_from("docs/start_training.yml", methods=['GET','POST'])
+@api.route('/start_training', methods=['GET','POST'])
+def ml_training():
+    result = {}
+    text = ""
+    if request.method == 'POST':
+        print('post')
+        text = request.form.get('text', '')
+        result = predict_text(text)
+    else:
+        print('get')
+        x=text_normalization_on_db_raw_data()
+
+    json_response = {
+        'status_code': 200,
+        'raw_text': text,
+        'result': result
     }
     return jsonify(json_response)
 

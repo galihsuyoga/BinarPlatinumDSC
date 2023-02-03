@@ -5,14 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4efecbf4-f1a0-4ddc-b3e7-8bcbc15b7134" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/main/docs/text_input_raw_data.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/share/man/man1/ttx.1" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/cleanser.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/cleanser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/database/platinum.db" beforeDir="false" afterPath="$PROJECT_DIR$/main/database/platinum.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/platnum_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/platnum_api.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MLModel/sklearn_MPL.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MLModel/sklearn_knn.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MLModel/sklearn_naive_bayes.pkl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/MLModel/sklearn_regression.pkl" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -37,14 +34,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/BinarPlatinum/BinarPlatinumDSC&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/Admin/Desktop/BinarPlatinum/BinarPlatinumDSC/main/docs",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\Desktop\BinarPlatinum\BinarPlatinumDSC\main\docs" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Admin\Desktop\BinarPlatinum\BinarPlatinumDSC\MLModel" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
