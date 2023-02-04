@@ -17,6 +17,9 @@ front = Blueprint('front', __name__, template_folder='templates', static_folder=
 def index():
     return render_template('frontend/index.html')
 
+@front.route('/test')
+def test():
+    return "test"
 
 # url redirection to swagger documentation
 @front.route('/swagger_index', methods=['GET'])

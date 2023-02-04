@@ -8,7 +8,7 @@ from flask import request, Blueprint, jsonify
 from flasgger import swag_from
 from main.model.text_processing import Abusive, KamusAlay, TextLog, FileTextLog, RawText
 # pandas for data manipulation
-from main.cleanser import bersihkan_tweet_dari_file, bersihkan_tweet_dari_text, text_normalization_on_db_raw_data, predict_text
+from main.cleanser import bersihkan_tweet_dari_file, bersihkan_tweet_dari_text, text_normalization_on_db_raw_data, predict_text, training_model_evaluate
 from sqlalchemy import or_
 import pandas as pd
 
@@ -42,7 +42,8 @@ def ml_training():
         result = predict_text(text)
     else:
         print('get')
-        x=text_normalization_on_db_raw_data()
+        # x=text_normalization_on_db_raw_data()
+        x = training_model_evaluate()
 
     json_response = {
         'status_code': 200,

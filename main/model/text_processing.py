@@ -261,3 +261,42 @@ class RawText(db.Model):
         except:
             db.session.rollback()
             raise
+
+
+class ProcessedText(db.Model):
+    __tablename__ = 'processed_text'
+
+    id = db.Column(db.Integer().with_variant(db.Integer, "sqlite"), nullable=False, autoincrement=True)
+    kalimat = db.Column(db.String(512), primary_key=True, nullable=False, index=True, default="")
+    sentimen = db.Column(db.String(31), primary_key=True, nullable=False, index=True, default="")
+
+    kalimat_bersih = db.Column(db.String(512), nullable=False, index=True, default="")
+    kalimat_bersih_v2 = db.Column(db.String(512), nullable=False, index=True, default="")
+    kalimat_bersih_v3 = db.Column(db.String(512), nullable=False, index=True, default="")
+    jumlah_kalimat = db.Column(db.Integer, nullable=False, default="")
+
+    jumlah_kata = db.Column(db.Integer, nullable=False, default="")
+
+
+
+    def __init__(self, kalimat, sentimen, kalimat_bersih, kalimat_bersih_v2, kalimat_bersih_v3, jumlah_kalimat, jumlah_kata):
+        self.kalimat = kalimat
+        self.sentimen = sentimen
+        self.kalimat_bersih = kalimat_bersih
+        self.kalimat_bersih_v2 = kalimat_bersih_v2
+        self.kalimat_bersih_v3 = kalimat_bersih_v3
+        self.jumlah_kalimat = jumlah_kalimat
+        self.jumlah_kata = jumlah_kata
+
+
+    def __repr__(self):
+        return '<ProcessedText %r>' % self.kalimat_bersih_v3
+
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.flush()
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
