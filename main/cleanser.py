@@ -16,6 +16,7 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+import tensorflow_datasets as tfds
 
 # Machine Learning model
 from sklearn.linear_model import LogisticRegression
@@ -28,12 +29,32 @@ from sklearn import metrics
 from mlxtend.plotting import plot_confusion_matrix, plot_decision_regions
 
 
+
 # Supaya tidak ada warnings yg mengganggu
 import warnings
+
+from keras.datasets import imdb
+from keras.layers import LSTM, Embedding, Dense
+from keras_preprocessing.sequence import pad_sequences
+import tensorflow as tf
+
+
 warnings.filterwarnings('ignore')
 
 from nltk.corpus import stopwords
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+
+import matplotlib.pyplot as plt
+
+from imblearn.over_sampling import RandomOverSampler
+
+def plot_graphs(history, metric):
+  plt.plot(history.history[metric])
+  plt.plot(history.history['val_'+metric], '')
+  plt.xlabel("Epochs")
+  plt.ylabel(metric)
+  plt.legend([metric, 'val_'+metric])
+
 
 nltk.download('stopwords')
 listStopword = list(stopwords.words('indonesian'))
@@ -317,74 +338,89 @@ def training_model_evaluate():
         sql=db.select([ProcessedText.kalimat, ProcessedText.sentimen, ProcessedText.kalimat_bersih, ProcessedText.kalimat_bersih_v2, ProcessedText.kalimat_bersih_v3, ProcessedText.jumlah_kata, ProcessedText.jumlah_kalimat]),
         con=db.engine
     )
+    over = RandomOverSampler()
+    print(df.head())
+    # imbalance
+    # positif 6383 negatif 3412 netral 1138
+    print(f' {len(df[df["sentimen"]=="positive"])} {len(df[df["sentimen"]=="negative"])} {len(df[df["sentimen"]=="neutral"])  }')
     count_vect = CountVectorizer()
-    count_vect.fit(df['kalimat_bersih_v3'])
+    count_vect.fit(df['kalimat'])
 
     # jumlah unique words
     word_features = count_vect.get_feature_names_out()
     print(f"jumlah unique words: {len(word_features)}")
 
     # Hasil Transformasi
-    transformed = count_vect.transform(df['kalimat_bersih_v3'])
+    transformed = count_vect.transform(df['kalimat'])
     X = transformed.toarray()
     print(f"Hasil transformasi array shape: {X.shape}")
 
 
     tfidf_vect = TfidfVectorizer()
-    tfidf_vect.fit(df['kalimat_bersih_v3'])
+    tfidf_vect.fit(df['kalimat'])
 
     # Hasil Transformasi
-    transformed = tfidf_vect.transform(df['kalimat_bersih_v3'])
+    transformed = tfidf_vect.transform(df['kalimat'])
     X = transformed.toarray()
     print(f"Hasil transformasi array shape: {X.shape}")
     print(X)
 
     y = df['sentimen']
+    y = y.factorize()[0]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # oversampling
+    X, y = over.fit_resample(X, y)
 
+    X_train, X_test, y_train, y_test = train_test_split(X,y , test_size=0.1, random_state=0)
+
+    print(X_train[:10])
+    print(y_train.shape)
     #modeling
 
     # regresi
-    # model_1 = LogisticRegression()
-    # model_1.fit(X_train, y_train)
-    # model_1_pred = model_1.predict(X_test)
-    # print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
+    model_1 = LogisticRegression()
+    model_1.fit(X_train, y_train)
+    model_1_pred = model_1.predict(X_test)
+    print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
 
-    #gausian naive bayes
-    # model_2 = GaussianNB()
-    # model_2.fit(X_train, y_train)
-    # model_2_pred = model_2.predict(X_test)
-    # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
+    # gausian naive bayes
+    model_2 = GaussianNB()
+    model_2.fit(X_train, y_train)
+    model_2_pred = model_2.predict(X_test)
+    print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
 
     # MLP(multi-layer perception)/ neural network
-    model_3 = MLPClassifier((10,5,3),)
+    model_3 = MLPClassifier(100)
     model_3.fit(X_train, y_train)
     model_3_pred = model_3.predict(X_test)
     print(f"Accuracy model MLP: {metrics.accuracy_score(y_test, model_3_pred) * 100:.2f}%")
 
-    # # knn
-    # model_4 = KNeighborsClassifier()
-    # model_4.fit(X_train, y_train)
-    # model_4_pred = model_4.predict(X_test)
-    #
-    # print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
+    # knn
+    model_4 = KNeighborsClassifier()
+    model_4.fit(X_train, y_train)
+    model_4_pred = model_4.predict(X_test)
 
-    # d = {"prep": count_vect, "model": model_1}
-    # with open(__sklearn_regresion, 'wb') as f:
-    #     pickle.dump(d, f)
+    print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
 
-    # d = {"prep": count_vect, "model": model_2}
-    # with open(__sklearn_naive_bayes, 'wb') as f:
-    #     pickle.dump(d, f)
+    d = {"prep": count_vect, "model": model_1}
+    with open(__sklearn_regresion, 'wb') as f:
+        pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_2}
+    with open(__sklearn_naive_bayes, 'wb') as f:
+        pickle.dump(d, f)
 
     d = {"prep": count_vect, "model": model_3}
     with open(__sklearn_mlp, 'wb') as f:
         pickle.dump(d, f)
 
-    # d = {"prep": count_vect, "model": model_4}
-    # with open(__sklearn_knn, 'wb') as f:
-    #     pickle.dump(d, f)
+    d = {"prep": count_vect, "model": model_4}
+    with open(__sklearn_knn, 'wb') as f:
+        pickle.dump(d, f)
+
+
+
+
     return ""
 
 def predict_text(text):

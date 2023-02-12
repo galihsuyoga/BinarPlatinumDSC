@@ -4,25 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4efecbf4-f1a0-4ddc-b3e7-8bcbc15b7134" name="Changes" comment="">
+    <list default="true" id="e5effc8e-674e-4b6f-a161-02b03b1e9778" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/BinarPlatinumDSC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/BinarPlatinumDSC.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/site/python3.11/greenlet/greenlet.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main/cleanser.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/cleanser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/database/platinum.db" beforeDir="false" afterPath="$PROJECT_DIR$/main/database/platinum.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/frontend.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/frontend.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/model/text_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/model/text_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/platnum_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/platnum_api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyvenv.cfg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/share/man/man1/ttx.1" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -30,7 +24,7 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectId" id="2L4dG2IrEVVgKnwB69MW1OiRK1U" />
+  <component name="ProjectId" id="2LLRXHQRySH3Wjo4fuBDv86A1XX" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -39,26 +33,17 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Admin/Desktop/BinarPlatinum/BinarPlatinumDSC/main/docs&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\Admin\Desktop\BinarPlatinum\BinarPlatinumDSC\main\docs" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Admin\Desktop\BinarPlatinum\BinarPlatinumDSC\MLModel" />
-    </key>
-  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="4efecbf4-f1a0-4ddc-b3e7-8bcbc15b7134" name="Changes" comment="" />
-      <created>1675134190776</created>
+      <changelist id="e5effc8e-674e-4b6f-a161-02b03b1e9778" name="Changes" comment="" />
+      <created>1675648415680</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1675134190776</updated>
+      <updated>1675648415680</updated>
     </task>
     <servers />
   </component>
