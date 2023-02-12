@@ -5,19 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e5effc8e-674e-4b6f-a161-02b03b1e9778" name="Changes" comment="">
+<<<<<<< HEAD
       <change afterPath="$PROJECT_DIR$/MLModel/sklearn_MPL.pkl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MLModel/tensor_neural_network.pkl" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MLModel/tensor_neural_network/keras_metadata.pb" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MLModel/tensor_neural_network/saved_model.pb" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MLModel/tensor_neural_network/variables/variables.data-00000-of-00001" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/MLModel/tensor_neural_network/variables/variables.index" afterDir="false" />
+=======
+>>>>>>> 9fd3c3de618380249f0b84894a8a0c1e63d5c0dd
       <change beforePath="$PROJECT_DIR$/.idea/BinarPlatinumDSC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/BinarPlatinumDSC.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/site/python3.11/greenlet/greenlet.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main/cleanser.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/cleanser.py" afterDir="false" />
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/main/database/platinum.db" beforeDir="false" afterPath="$PROJECT_DIR$/main/database/platinum.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/platnum_api.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/platnum_api.py" afterDir="false" />
+=======
+>>>>>>> 9fd3c3de618380249f0b84894a8a0c1e63d5c0dd
       <change beforePath="$PROJECT_DIR$/pyvenv.cfg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/share/man/man1/ttx.1" beforeDir="false" />
     </list>

@@ -390,6 +390,19 @@ def training_model_evaluate():
     # model_2_pred = model_2.predict(X_test)
     # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
 
+    # regresi
+    model_1 = LogisticRegression()
+    model_1.fit(X_train, y_train)
+    model_1_pred = model_1.predict(X_test)
+    print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
+
+    # gausian naive bayes
+    model_2 = GaussianNB()
+    model_2.fit(X_train, y_train)
+    model_2_pred = model_2.predict(X_test)
+    print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
+
+
     # MLP(multi-layer perception)/ neural network
     model_3 = MLPClassifier(100)
     model_3.fit(X_train, y_train)
@@ -410,6 +423,19 @@ def training_model_evaluate():
     # d = {"prep": count_vect, "model": model_2}
     # with open(__sklearn_naive_bayes, 'wb') as f:
     #     pickle.dump(d, f)
+    model_4 = KNeighborsClassifier()
+    model_4.fit(X_train, y_train)
+    model_4_pred = model_4.predict(X_test)
+
+    print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
+
+    d = {"prep": count_vect, "model": model_1}
+    with open(__sklearn_regresion, 'wb') as f:
+        pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_2}
+    with open(__sklearn_naive_bayes, 'wb') as f:
+        pickle.dump(d, f)
 
     d = {"prep": count_vect, "model": model_3}
     with open(__sklearn_mlp, 'wb') as f:
@@ -418,6 +444,10 @@ def training_model_evaluate():
     # d = {"prep": count_vect, "model": model_4}
     # with open(__sklearn_knn, 'wb') as f:
     #     pickle.dump(d, f)
+
+    d = {"prep": count_vect, "model": model_4}
+    with open(__sklearn_knn, 'wb') as f:
+        pickle.dump(d, f)
 
 
 
