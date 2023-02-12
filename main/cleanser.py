@@ -48,13 +48,6 @@ import matplotlib.pyplot as plt
 
 from imblearn.over_sampling import RandomOverSampler
 
-def plot_graphs(history, metric):
-  plt.plot(history.history[metric])
-  plt.plot(history.history['val_'+metric], '')
-  plt.xlabel("Epochs")
-  plt.ylabel(metric)
-  plt.legend([metric, 'val_'+metric])
-
 
 nltk.download('stopwords')
 listStopword = list(stopwords.words('indonesian'))
@@ -78,11 +71,26 @@ def replace_alay_word(text, df_alay):
         cleaned.append(meaning)
     return " ".join(word for word in cleaned)
 
-def text_normalization_on_sentence(text):
-    text = re.sub(r'[^\w\s]|[0-9]', ' ', text)
-    text = text.lower().replace('   ', ' ').replace('  ', ' ')
 
-    return ""
+def cleanser_string_step(text, step: int):
+    text = str(text)
+    if step >= 1:
+        text = text.lower()
+        text = ' '.join([word for word in text.split() if word not in (listStopword)])
+        text = re.sub(r'[^\w\s]|[0-9]', ' ', text)
+        text = text.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
+        print(text)
+    if step >= 2:
+        df_alay = pd.read_sql_query(
+            sql=db.select([KamusAlay.word, KamusAlay.meaning]),
+            con=db.engine
+        )
+        text = replace_alay_word(text=text, df_alay=df_alay)
+    if step >= 3:
+        factory = StemmerFactory()
+        stemmer = factory.create_stemmer()
+        text = stemmer.stem(text)
+    return text
 
 def text_normalization_on_db_raw_data():
 
@@ -209,13 +217,13 @@ def training_model_evaluate():
 
     print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
 
-    d = {"prep": count_vect, "model": model_1}
-    with open(__sklearn_regresion, 'wb') as f:
-        pickle.dump(d, f)
-
-    d = {"prep": count_vect, "model": model_2}
-    with open(__sklearn_naive_bayes, 'wb') as f:
-        pickle.dump(d, f)
+    # d = {"prep": count_vect, "model": model_1}
+    # with open(__sklearn_regresion, 'wb') as f:
+    #     pickle.dump(d, f)
+    #
+    # d = {"prep": count_vect, "model": model_2}
+    # with open(__sklearn_naive_bayes, 'wb') as f:
+    #     pickle.dump(d, f)
 
     d = {"prep": count_vect, "model": model_3}
     with open(__sklearn_mlp, 'wb') as f:
@@ -225,9 +233,9 @@ def training_model_evaluate():
     # with open(__sklearn_knn, 'wb') as f:
     #     pickle.dump(d, f)
 
-    d = {"prep": count_vect, "model": model_4}
-    with open(__sklearn_knn, 'wb') as f:
-        pickle.dump(d, f)
+    # d = {"prep": count_vect, "model": model_4}
+    # with open(__sklearn_knn, 'wb') as f:
+    #     pickle.dump(d, f)
 
 
 
@@ -339,3 +347,25 @@ def predict_text(text):
     }
 
     return data
+
+def predict_neural_network_text(text):
+    with open(__sklearn_mlp, 'rb') as f:
+        package = pickle.load(f)
+    kalimat_array = package["prep"].transform([text]).toarray()
+    prediksi_mlp = package["model"].predict(kalimat_array)[0]
+
+    label = ['POSITIVE', 'NEUTRAL', 'NEGATIVE']
+
+    return label[prediksi_mlp]
+
+def predict_LSTM(text):
+    with open(__sklearn_mlp, 'rb') as f:
+        package = pickle.load(f)
+    kalimat_array = package["prep"].transform([text]).toarray()
+
+    label = ['POSITIVE', 'NEUTRAL', 'NEGATIVE']
+    lstm_tensor = tf.keras.models.load_model(__sklearn_tensor_neural_network)
+    a = list(lstm_tensor.predict(kalimat_array)[0])
+    tensor_prediction = (a.index(max(a)))
+
+    return label[tensor_prediction]
