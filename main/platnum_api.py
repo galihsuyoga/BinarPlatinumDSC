@@ -8,7 +8,7 @@ from flask import request, Blueprint, jsonify
 from flasgger import swag_from
 from main.model.text_processing import Abusive, KamusAlay, TextLog, FileTextLog, RawText
 # pandas for data manipulation
-from main.cleanser import bersihkan_tweet_dari_file, bersihkan_tweet_dari_text, text_normalization_on_db_raw_data, predict_text, training_model_evaluate, training_model_evaluate_tensor
+from main.cleanser import text_normalization_on_db_raw_data, predict_text, training_model_evaluate, training_model_evaluate_tensor
 from sqlalchemy import or_
 import pandas as pd
 
@@ -23,10 +23,11 @@ api = Blueprint('api', __name__, template_folder='templates', static_folder='ass
 @api.route('/text-pre-processing', methods=['POST'])
 def text_pre_processing():
     text = request.form.get('text', '')
+    print(text_normalization_on_db_raw_data())
     json_response = {
         'status_code': 200,
         'raw_text': text,
-        'cleaned_text': bersihkan_tweet_dari_text(text)
+        'cleaned_text': (text)
     }
     return jsonify(json_response)
 
@@ -82,27 +83,13 @@ def text_input_raw_data():
             print(data_frame.head())
 
             for index, data in data_frame.iterrows():
-                # if index < 20:
-                #     print(data[1])
+
                 duplicate = RawText.query.filter(RawText.kalimat == data[0], RawText.sentimen == data[1]).first()
                 if duplicate is None:
 
                     new_data = RawText(kalimat=data[0], sentimen=data[1])
                     new_data.save()
-            # query all abusive word to become dataframe
-            # abusive_df = pd.read_sql_query(
-            #     sql=db.select([Abusive.word]),
-            #     con=db.engine
-            # )
-            # # query all alay word to become dataframe
-            # alay_df = pd.read_sql_query(
-            #     sql=db.select([KamusAlay.word, KamusAlay.meaning]),
-            #     con=db.engine
-            # )
-            #
-            # for index, row in data_frame.iterrows():
-            #     array_text.append(bersihkan_tweet_dari_file(tweet=str(row['Tweet']), df_abusive=abusive_df,
-            #                                                 df_alay=alay_df, full=row.to_dict()))
+
     else:
         http_code = 400
         description = "file not found"
