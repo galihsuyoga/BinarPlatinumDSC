@@ -20,6 +20,33 @@ from main.model import db
 # initializing front root for project asset and template
 api = Blueprint('api', __name__, template_folder='templates', static_folder='assets')
 
+
+@swag_from("docs/text_neural_network.yml", methods=['POST'])
+@api.route('/text-neural-network', methods=['POST'])
+def text_neural_network():
+    text = request.form.get('text', '')
+    text_clean = cleanser_string_step(text=text, step=1)
+
+    json_response = {
+        'status_code': 200,
+        'raw_text': text,
+        'sentimen': predict_neural_network_text(text_clean)
+    }
+    return jsonify(json_response)
+
+@swag_from("docs/text_LSTM.yml", methods=['POST'])
+@api.route('/text-LSTM', methods=['POST'])
+def text_LSTM():
+    text = request.form.get('text', '')
+    text_clean = cleanser_string_step(text=text, step=1)
+
+    json_response = {
+        'status_code': 200,
+        'raw_text': text,
+        'sentimen': predict_LSTM(text_clean)
+    }
+    return jsonify(json_response)
+
 # @swag_from("docs/text_pre_processing.yml", methods=['POST'])
 # @api.route('/text-pre-processing', methods=['POST'])
 # def text_pre_processing():
@@ -33,27 +60,27 @@ api = Blueprint('api', __name__, template_folder='templates', static_folder='ass
 #     return jsonify(json_response)
 #
 #
-# @swag_from("docs/start_training.yml", methods=['GET','POST'])
-# @api.route('/start_training', methods=['GET','POST'])
-# def ml_training():
-#     result = {}
-#     text = ""
-#     if request.method == 'POST':
-#         print('post')
-#         text = request.form.get('text', '')
-#         result = predict_text(text)
-#     else:
-#         print('get')
-#         # x=text_normalization_on_db_raw_data()
-#         x = training_model_evaluate_tensor()
-#         y = training_model_evaluate()
-#
-#     json_response = {
-#         'status_code': 200,
-#         'raw_text': text,
-#         'result': result
-#     }
-#     return jsonify(json_response)
+@swag_from("docs/start_training.yml", methods=['GET','POST'])
+@api.route('/start_training', methods=['GET','POST'])
+def ml_training():
+    result = {}
+    text = ""
+    if request.method == 'POST':
+        print('post')
+        text = request.form.get('text', '')
+        result = predict_text(text)
+    else:
+        print('get')
+        # x=text_normalization_on_db_raw_data()
+        x = training_model_evaluate_tensor()
+        # y = training_model_evaluate()
+
+    json_response = {
+        'status_code': 200,
+        'raw_text': text,
+        'result': result
+    }
+    return jsonify(json_response)
 #
 # @swag_from("docs/text_input_raw_data.yml", methods=['POST'])
 # @api.route('/text-input_raw_data', methods=['POST'])
@@ -101,29 +128,3 @@ api = Blueprint('api', __name__, template_folder='templates', static_folder='ass
 #         'data': array_text
 #     }
 #     return jsonify(json_response)
-
-@swag_from("docs/text_neural_network.yml", methods=['POST'])
-@api.route('/text-neural-network', methods=['POST'])
-def text_neural_network():
-    text = request.form.get('text', '')
-    text_clean = cleanser_string_step(text=text, step=1)
-
-    json_response = {
-        'status_code': 200,
-        'raw_text': text,
-        'sentimen': predict_neural_network_text(text_clean)
-    }
-    return jsonify(json_response)
-
-@swag_from("docs/text_LSTM.yml", methods=['POST'])
-@api.route('/text-LSTM', methods=['POST'])
-def text_LSTM():
-    text = request.form.get('text', '')
-    text_clean = cleanser_string_step(text=text, step=1)
-
-    json_response = {
-        'status_code': 200,
-        'raw_text': text,
-        'sentimen': predict_LSTM(text_clean)
-    }
-    return jsonify(json_response)

@@ -34,7 +34,7 @@ from mlxtend.plotting import plot_confusion_matrix, plot_decision_regions
 import warnings
 
 from keras.datasets import imdb
-from keras.layers import LSTM, Embedding, Dense
+# from keras.layers import LSTM, Embedding, Dense
 from keras_preprocessing.sequence import pad_sequences
 import tensorflow as tf
 
@@ -158,14 +158,14 @@ def training_model_evaluate():
     y = y.factorize()[0]
 
     # oversampling
-    X, y = over.fit_resample(X, y)
+
 
     X_train, X_test, y_train, y_test = train_test_split(X,y , test_size=0.1, random_state=0)
 
     print(X_train[:10])
     print(y_train.shape)
     #modeling
-
+    X_train, y_train = over.fit_resample(X, y)
     # # regresi
     # model_1 = LogisticRegression()
     # model_1.fit(X_train, y_train)
@@ -249,12 +249,12 @@ def training_model_evaluate_tensor():
                        ProcessedText.jumlah_kalimat]),
         con=db.engine
     )
+    max_features = 100000
     over = RandomOverSampler()
     print(df.head())
     # imbalance
     # positif 6383 negatif 3412 netral 1138
-    print(
-        f' {len(df[df["sentimen"] == "positive"])} {len(df[df["sentimen"] == "negative"])} {len(df[df["sentimen"] == "neutral"])}')
+    print(f' {len(df[df["sentimen"] == "positive"])} {len(df[df["sentimen"] == "negative"])} {len(df[df["sentimen"] == "neutral"])}')
     count_vect = CountVectorizer()
     count_vect.fit(df['kalimat_bersih'])
 
@@ -269,6 +269,7 @@ def training_model_evaluate_tensor():
 
     tfidf_vect = TfidfVectorizer()
     tfidf_vect.fit(df['kalimat_bersih'])
+    word_features = tfidf_vect.get_feature_names_out()
 
     # Hasil Transformasi
     transformed = tfidf_vect.transform(df['kalimat_bersih'])
@@ -279,38 +280,57 @@ def training_model_evaluate_tensor():
     y = df['sentimen']
     y = y.factorize()[0]
 
-    # oversampling
-    X, y = over.fit_resample(X, y)
-    # tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=len(word_features))
+    # tokenizer =f tf.keras.preprocessing.text.Tokenizer(num_words=len(word_features))
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
     num_classes = max(y_train) + 1
+
+    # oversampling
+    print(X_train[0])
+    X_train, y_train = over.fit_resample(X_train, y_train)
+    print(np.max(X_train[0]))
+    print(str(y_train))
+
 
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
 
     model = tf.keras.Sequential()
-    model.add(tf.keras.layers.Dense(512, input_shape=(len(word_features),)))
-    model.add(tf.keras.layers.Activation('relu'))
-    model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(num_classes))
-    model.add(tf.keras.layers.Activation('softmax'))
+    model.add(tf.keras.layers.Embedding(max_features, 100, input_length=X.shape[1]))
+    model.add(tf.keras.layers.LSTM(64, dropout=0.2))
+
+    model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
     model.summary()
+
+    # embed_dim = 100
+    # units = 64
+    # #
+    # model = tf.keras.Sequential()
+    # model.add(Embedding(max_features, embed_dim, input_length=X.shape[1]))
+    # model.add(LSTM(units, dropout=0.2))
+    # model.add(Dense(num_classes, activation='softmax'))
+    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    # print(model.summary())
 
     model.compile(loss="categorical_crossentropy",
                   optimizer='adam',
                   metrics=['accuracy'])
 
-    model.fit(X_train, y_train,
-              epochs=20,
-              batch_size=32,
-              validation_split=0.1)
+    # model.fit(X_train, y_train,
+    #           epochs=20,
+    #           batch_size=32,
+    #           validation_split=0.1, validation_data=(X_test, y_test))
+
+    es =tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=0)
+    model.fit(X_train, y_train, epochs=100, batch_size=10, validation_data=(X_test, y_test))
+
+
 
     # d = {"prep": count_vect, "model": model}
     # with open(__sklearn_tensor_neural_network, 'wb') as f:
     #     pickle.dump(d, f)
 
-    model.save(__sklearn_tensor_neural_network)
+    # model.save(__sklearn_tensor_neural_network)
 
     return ""
 
