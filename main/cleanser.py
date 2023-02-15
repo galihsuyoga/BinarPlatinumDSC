@@ -49,6 +49,7 @@ import matplotlib.pyplot as plt
 from imblearn.over_sampling import RandomOverSampler
 
 
+
 nltk.download('stopwords')
 listStopword = list(stopwords.words('indonesian'))
 
@@ -116,6 +117,7 @@ def text_normalization_on_db_raw_data():
 
     df['kalimat_bersih_v2'] = df['kalimat_bersih'].apply(lambda x: replace_alay_word(text=x, df_alay=df_alay))
     df['kalimat_bersih_v3'] = df['kalimat_bersih_v2'].apply(lambda x: stemmer.stem(x))
+    df['kalimat_bersih_v4'] = df['kalimat_bersih'].apply(lambda x: stemmer.stem(x))
     print(df['kalimat_bersih_v3'][:5])
 
     df.to_sql('processed_text', con=db.engine, if_exists='replace', index_label='id')
@@ -263,15 +265,15 @@ def training_model_evaluate_tensor():
     print(f"jumlah unique words: {len(word_features)}")
 
     # Hasil Transformasi
-    transformed = count_vect.transform(df['kalimat_bersih'])
-    X = transformed.toarray()
-    print(f"Hasil transformasi array shape: {X.shape}")
+    # transformed = count_vect.transform(df['kalimat_bersih'])
+    # X = transformed.toarray()
+    # print(f"Hasil transformasi array shape: {X.shape}")
 
     tfidf_vect = TfidfVectorizer()
     tfidf_vect.fit(df['kalimat_bersih'])
     word_features = tfidf_vect.get_feature_names_out()
-
-    # Hasil Transformasi
+    #
+    # # Hasil Transformasi
     transformed = tfidf_vect.transform(df['kalimat_bersih'])
     X = transformed.toarray()
     print(f"Hasil transformasi array shape: {X.shape}")
@@ -291,6 +293,9 @@ def training_model_evaluate_tensor():
     print(np.max(X_train[0]))
     print(str(y_train))
 
+    # tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=max_features)
+    # X_train = tokenizer.sequences_to_matrix(X_train, mode='weight')
+    # X_test = tokenizer.sequences_to_matrix(X_test, mode='weight')
 
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
@@ -323,8 +328,6 @@ def training_model_evaluate_tensor():
 
     es =tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=0)
     model.fit(X_train, y_train, epochs=100, batch_size=10, validation_data=(X_test, y_test))
-
-
 
     # d = {"prep": count_vect, "model": model}
     # with open(__sklearn_tensor_neural_network, 'wb') as f:
@@ -389,3 +392,92 @@ def predict_LSTM(text):
     tensor_prediction = (a.index(max(a)))
 
     return label[tensor_prediction]
+
+def test_LSTM():
+    df = pd.read_sql_query(
+        sql=db.select([ProcessedText.kalimat, ProcessedText.sentimen, ProcessedText.kalimat_bersih,
+                       ProcessedText.kalimat_bersih_v2, ProcessedText.kalimat_bersih_v3, ProcessedText.jumlah_kata,
+                       ProcessedText.jumlah_kalimat]),
+        con=db.engine
+    )
+
+    over = RandomOverSampler()
+    print(df.head())
+    # imbalance
+    # positif 6383 negatif 3412 netral 1138
+    print(f' {len(df[df["sentimen"] == "positive"])} {len(df[df["sentimen"] == "negative"])} {len(df[df["sentimen"] == "neutral"])}')
+
+    print(df.sentimen.value_counts())
+
+    neg = df.loc[df['sentimen'] == 'negative'].kalimat_bersih.tolist()
+    neu = df.loc[df['sentimen'] == 'neutral'].kalimat_bersih.tolist()
+    pos = df.loc[df['sentimen'] == 'positive'].kalimat_bersih.tolist()
+
+    neg_label = df.loc[df['sentimen'] == 'negative'].sentimen.tolist()
+    neu_label = df.loc[df['sentimen'] == 'neutral'].sentimen.tolist()
+    pos_label = df.loc[df['sentimen'] == 'positive'].sentimen.tolist()
+
+    total_data = pos + neu + neg
+    labels = pos_label + neu_label + neg_label
+
+    print("Pos: %s, Neu: %s, Neg: %s" % (len(pos), len(neu), len(neg)))
+    print("Total data: %s" % len(total_data))
+
+    max_features = 100000
+    tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=max_features, split=' ', lower=True)
+    tokenizer.fit_on_texts(total_data)
+    with open('tokenizer.pickle', 'wb') as handle:
+        pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("tokenizer.pickle has created!")
+
+    X = tokenizer.texts_to_sequences(total_data)
+
+    vocab_size = len(tokenizer.word_index)
+    maxlen = max(len(x) for x in X)
+
+    X = pad_sequences(X)
+    with open('x_pad_sequences.pickle', 'wb') as handle:
+        pickle.dump(X, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("x_pad_sequences.pickle has created!")
+
+    Y = pd.get_dummies(labels)
+    Y = Y.values
+
+    with open('y_labels.pickle', 'wb') as handle:
+        pickle.dump(Y, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("y_labels.pickle has created!")
+
+    file = open("x_pad_sequences.pickle", 'rb')
+    X = pickle.load(file)
+    file.close()
+
+    file = open("y_labels.pickle", 'rb')
+    Y = pickle.load(file)
+    file.close()
+
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
+
+    embed_dim = 100
+    units = 64
+    X_train, y_train = over.fit_resample(X_train, y_train)
+
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Embedding(max_features, embed_dim, input_length=X.shape[1]))
+    model.add(tf.keras.layers.LSTM(units, dropout=0.2))
+    model.add(tf.keras.layers.Dense(3, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    print(model.summary())
+
+    adam = tf.keras.optimizers.Adam(lr=0.001)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+
+    es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1)
+    history = model.fit(X_train, y_train, epochs=10, batch_size=10, validation_data=(X_test, y_test), verbose=1,
+                        callbacks=[es])
+
+    predictions = model.predict(X_test)
+    y_pred = predictions
+    matrix_test = metrics.classification_report(y_test.argmax(axis=1), y_pred.argmax(axis=1))
+    print("Testing selesai")
+    print(matrix_test)
+    return ""
