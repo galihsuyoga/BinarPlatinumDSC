@@ -25,7 +25,7 @@ api = Blueprint('api', __name__, template_folder='templates', static_folder='ass
 @api.route('/text-neural-network', methods=['POST'])
 def text_neural_network():
     text = request.form.get('text', '')
-    text_clean = cleanser_string_step(text=text, step=1)
+    text_clean = cleanser_string_step(text=text, step=3)
 
     json_response = {
         'status_code': 200,
@@ -38,12 +38,10 @@ def text_neural_network():
 @api.route('/text-LSTM', methods=['POST'])
 def text_LSTM():
     text = request.form.get('text', '')
-    text_clean = cleanser_string_step(text=text, step=1)
-
     json_response = {
         'status_code': 200,
         'raw_text': text,
-        'sentimen': predict_LSTM(text_clean)
+        'sentimen': predict_LSTM(text)
     }
     return jsonify(json_response)
 
@@ -60,28 +58,28 @@ def text_LSTM():
 #     return jsonify(json_response)
 #
 #
-@swag_from("docs/start_training.yml", methods=['GET','POST'])
-@api.route('/start_training', methods=['GET','POST'])
-def ml_training():
-    result = {}
-    text = ""
-    if request.method == 'POST':
-        print('post')
-        text = request.form.get('text', '')
-        result = predict_text(text)
-    else:
-        print('get')
-        x= text_normalization_on_db_raw_data()
-        # x=test_LSTM()
-        # x = training_model_evaluate_tensor()
-        # y = training_model_evaluate()
-
-    json_response = {
-        'status_code': 200,
-        'raw_text': text,
-        'result': result
-    }
-    return jsonify(json_response)
+# @swag_from("docs/start_training.yml", methods=['GET','POST'])
+# @api.route('/start_training', methods=['GET','POST'])
+# def ml_training():
+#     result = {}
+#     text = ""
+#     if request.method == 'POST':
+#         print('post')
+#         text = request.form.get('text', '')
+#         result = predict_text(text)
+#     else:
+#         print('get')
+#         # x = text_normalization_on_db_raw_data()
+#         x=test_LSTM()
+#         # x = training_model_evaluate_tensor()
+#         # y = training_model_evaluate()
+#
+#     json_response = {
+#         'status_code': 200,
+#         'raw_text': text,
+#         'result': result
+#     }
+#     return jsonify(json_response)
 #
 # @swag_from("docs/text_input_raw_data.yml", methods=['POST'])
 # @api.route('/text-input_raw_data', methods=['POST'])
@@ -129,3 +127,104 @@ def ml_training():
 #         'data': array_text
 #     }
 #     return jsonify(json_response)
+
+@swag_from("docs/LSTM_file.yml", methods=['POST'])
+@api.route('/LSTM-file', methods=['POST'])
+def lstm_file():
+
+    description = "text sukses diproses"
+    http_code = 200
+    """get the file"""
+    file = request.files.get('text')
+    limit = int(request.form.get('limit'))
+    dict_text = {}
+
+    if file:
+        """split filename to get the file extension"""
+        array_name = file.filename.split(".")
+        file_ext = array_name[-1].lower()
+
+        """make sure it was csv"""
+        if file_ext != "csv":
+            """if it's not csv"""
+            description = "file is not csv"
+            http_code = 400
+        else:
+            """if csv"""
+            """masukkan csv ke panda dataframe variabel data_frame"""
+
+            data_frame = pd.read_csv(file.stream, encoding='latin-1')
+            # print(data_frame.head())
+            # print(data_frame.head())
+
+            if limit > 0:
+                new_df = data_frame[{'Tweet'}][:limit]
+                # print(new_df)
+            else:
+                new_df = data_frame[{'Tweet'}]
+            # print(new_df)
+            new_df['clean_tweet'] = new_df['Tweet'].apply(lambda x: cleanser_string_step(text=x, step=3))
+            # print(new_df)
+            new_df['sentimen'] = new_df['clean_tweet'].apply(lambda x: predict_LSTM(text=x))
+            dict_text = new_df[{'Tweet', 'sentimen'}].to_dict('records')
+
+    else:
+        http_code = 400
+        description = "file not found"
+
+    json_response = {
+        'status_code': http_code,
+        'description': description,
+        'data': dict_text
+    }
+    return jsonify(json_response)
+
+@swag_from("docs/neural_network_file.yml", methods=['POST'])
+@api.route('/neural_network-file', methods=['POST'])
+def neural_network_file():
+
+    description = "text sukses diproses"
+    http_code = 200
+    """get the file"""
+    file = request.files.get('text')
+    limit = int(request.form.get('limit'))
+
+    dict_text = {}
+
+    if file:
+        """split filename to get the file extension"""
+        array_name = file.filename.split(".")
+        file_ext = array_name[-1].lower()
+
+        """make sure it was csv"""
+        if file_ext != "csv":
+            """if it's not csv"""
+            description = "file is not csv"
+            http_code = 400
+        else:
+            """if csv"""
+            """masukkan csv ke panda dataframe variabel data_frame"""
+
+            data_frame = pd.read_csv(file.stream, encoding='latin-1')
+            # print(data_frame.head())
+
+            if limit > 0:
+                new_df = data_frame[{'Tweet'}][:limit]
+                # print(new_df)
+            else:
+                new_df = data_frame[{'Tweet'}]
+            new_df['clean_tweet'] = new_df['Tweet'].apply(lambda x: cleanser_string_step(text=x, step=3))
+            # print(new_df)
+            new_df['sentimen'] = new_df['clean_tweet'].apply(lambda x: predict_neural_network_text(text=x))
+            dict_text = new_df[{'Tweet', 'sentimen'}].to_dict('records')
+
+    else:
+        http_code = 400
+        description = "file not found"
+
+    json_response = {
+        'status_code': http_code,
+        'description': description,
+        'data': dict_text
+    }
+    return jsonify(json_response)

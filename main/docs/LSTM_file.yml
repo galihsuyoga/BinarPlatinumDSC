@@ -1,0 +1,24 @@
+tags:
+  - name: text sentiment classification Machine learning From CSV File on Neural network model LSTM
+get:
+  description: CSV Text File from challenge document
+parameters:
+  - in: formData
+    name: text
+    type: file
+    required: true
+    description: The text file in csv format to upload.
+  - in: formData
+    name: limit
+    schema:
+      type: integer
+    description: The numbers of items to clean and predict
+    required: true
+
+responses:
+  '200':
+    description: Successful response
+  '400':
+    description: Bad Request
+  '500':
+    description: Internal Server Error

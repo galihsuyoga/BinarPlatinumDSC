@@ -59,7 +59,92 @@ __sklearn_naive_bayes = "MLModel/sklearn_naive_bayes.pkl"
 __sklearn_knn = "MLModel/sklearn_knn.pkl"
 __sklearn_tensor_neural_network = "MLModel/tensor_neural_network"
 
+emoticons_happy = [
+    ':-)', ':)', ';)', ':o)', ':]', ':3', ':c)', ':>', '=]', '8)', '=)', ':}',
+    ':^)', ':-D', ':D', '8-D', '8D', 'x-D', 'xD', 'X-D', 'XD', '=-D', '=D',
+    '=-3', '=3', ':-))', ":'-)", ":')", ':*', ':^*', '>:P', ':-P', ':P', 'X-P',
+    'x-p', 'xp', 'XP', ':-p', ':p', '=p', ':-b', ':b', '>:)', '>;)', '>:-)',
+    '<3'
+    ]
+emoticons_sad = [
+    ':L', ':-/', '>:/', ':S', '>:[', ':@', ':-(', ':[', ':-||', '=L', ':<',
+    ':-[', ':-<', '=\\', '=/', '>:(', ':(', '>.<', ":'-(", ":'(", ':\\', ':-c',
+    ':c', ':{', '>:\\', ';('
+    ]
+emoticons = emoticons_happy + emoticons_sad
+# adding text need to remove
+emoticons.append("http")
+emoticons.append("url")
+
 # Platinum =======================================================================================================
+def clean_text(text):
+    # cek apakah string ataukah afloat
+    if type(text) == np.float:
+        return ""
+    # list dari pattern emoji
+    EMOJI_PATTERN = re.compile(
+        "["
+        "\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        "\U0001F300-\U0001F5FF"  # symbols & pictographs
+        "\U0001F600-\U0001F64F"  # emoticons
+        "\U0001F680-\U0001F6FF"  # transport & map symbols
+        "\U0001F700-\U0001F77F"  # alchemical symbols
+        "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+        "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+        "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+        "\U0001FA00-\U0001FA6F"  # Chess Symbols
+        "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+        "\U00002702-\U000027B0"  # Dingbats
+        "\U000024C2-\U0001F251"
+        "]+"
+        , flags=re.UNICODE)
+
+    # menghapus spesial karakter diakhir string karena error UnicodeDecodeError: 'unicodeescape' codec can't decode byte 0x5c in position 209: \ at end of string
+    # temp = re.sub(f"[ ,;:/]*$", " ", tweet)
+
+    # hapus karakter yang dimulai dengan \x (gak jadi pake. karena kalo nempel kata dibelakang jadi kehapus)
+    # temp = re.sub("\\\\x[a-z0-9_]+", " ", temp)
+
+    try:
+        # sub karakter \n
+        temp = re.sub(f"\\\\n", " ", text)
+        # ubah ke utf, ganti \\ dengan \ lalu ganti \u dengan \u000 lalu balikan ke unicode_escape
+        temp = temp.encode(
+            'unicode_escape').decode('utf-8').replace('\\\\', '\\').replace('\\u', '\\U000').encode('latin-1').decode(
+            'unicode-escape')
+    except:
+
+        # jika error karena UnicodeDecodeError: 'unicodeescape' codec can't decode byte 0x5c in position 209: \ at end of string
+        # split ke kata2
+        array_split = text.split()
+        # hapus kata atau simbol byte terakhir dengan harapan tak ada lagi unicodeescape
+        temp = text.replace(array_split[-1], " ")
+        # sub karakter \n
+        temp = re.sub(f"\\\\n", " ", temp)
+        # ubah ke utf, ganti \\ dengan \ lalu ganti \u dengan \u000 lalu balikan ke unicode_escape
+        temp = temp.encode(
+            'unicode_escape').decode('utf-8').replace('\\\\', '\\').replace('\\u', '\\U000').encode('latin-1').decode(
+            'unicode-escape')
+
+    # merubah byte patern emoji jadi emoji
+    temp = EMOJI_PATTERN.sub(r'', temp)
+
+    # hapus mention @
+    temp = re.sub("@[A-Za-z0-9_]+", "", temp)
+    # hapus hashtag
+    # temp = re.sub("#[A-Za-z0-9_]+","", temp) kayaknya gak perlu
+    # hapus amp
+    temp = re.sub("&amp"," ", temp)
+    # hapus tanda baca ()!?
+    temp = re.sub('[()!?]', ' ', temp)
+    # hapus karakter yang tidak dalam range a-z0-9x (karena emojinya udah jadi bentuk, bukan huruf, emoji bisa tersingkir)
+    temp = re.sub("[^A-Za-z0-9]", " ", temp)
+    # lowercase huruf
+    temp = temp.lower()
+    # # hapus kata duplikasi yang berurutan
+    temp = re.sub(r'\b(\w+)( \1\b)+', r'\1', temp)
+
+    return temp
 def replace_alay_word(text, df_alay):
     cleaned = []
     for word in text.split(' '):
@@ -76,11 +161,12 @@ def replace_alay_word(text, df_alay):
 def cleanser_string_step(text, step: int):
     text = str(text)
     if step >= 1:
-        text = text.lower()
+
+        text = clean_text(text)
         text = ' '.join([word for word in text.split() if word not in (listStopword)])
         text = re.sub(r'[^\w\s]|[0-9]', ' ', text)
         text = text.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
-        print(text)
+        # print(text)
     if step >= 2:
         df_alay = pd.read_sql_query(
             sql=db.select([KamusAlay.word, KamusAlay.meaning]),
@@ -118,7 +204,7 @@ def text_normalization_on_db_raw_data():
     df['kalimat_bersih_v2'] = df['kalimat_bersih'].apply(lambda x: replace_alay_word(text=x, df_alay=df_alay))
     df['kalimat_bersih_v3'] = df['kalimat_bersih_v2'].apply(lambda x: stemmer.stem(x))
     df['kalimat_bersih_v4'] = df['kalimat_bersih'].apply(lambda x: stemmer.stem(x))
-    print(df['kalimat_bersih_v3'][:5])
+    # print(df['kalimat_bersih_v3'][:5])
 
     df.to_sql('processed_text', con=db.engine, if_exists='replace', index_label='id')
 
@@ -181,16 +267,16 @@ def training_model_evaluate():
     # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
 
     # regresi
-    model_1 = LogisticRegression()
-    model_1.fit(X_train, y_train)
-    model_1_pred = model_1.predict(X_test)
-    print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
+    # model_1 = LogisticRegression()
+    # model_1.fit(X_train, y_train)
+    # model_1_pred = model_1.predict(X_test)
+    # print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
 
     # gausian naive bayes
-    model_2 = GaussianNB()
-    model_2.fit(X_train, y_train)
-    model_2_pred = model_2.predict(X_test)
-    print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
+    # model_2 = GaussianNB()
+    # model_2.fit(X_train, y_train)
+    # model_2_pred = model_2.predict(X_test)
+    # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
 
 
     # MLP(multi-layer perception)/ neural network
@@ -213,11 +299,11 @@ def training_model_evaluate():
     # d = {"prep": count_vect, "model": model_2}
     # with open(__sklearn_naive_bayes, 'wb') as f:
     #     pickle.dump(d, f)
-    model_4 = KNeighborsClassifier()
-    model_4.fit(X_train, y_train)
-    model_4_pred = model_4.predict(X_test)
-
-    print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
+    # model_4 = KNeighborsClassifier()
+    # model_4.fit(X_train, y_train)
+    # model_4_pred = model_4.predict(X_test)
+    #
+    # print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
 
     # d = {"prep": count_vect, "model": model_1}
     # with open(__sklearn_regresion, 'wb') as f:
@@ -284,7 +370,7 @@ def training_model_evaluate_tensor():
 
     # tokenizer =f tf.keras.preprocessing.text.Tokenizer(num_words=len(word_features))
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0, stratify=y)
     num_classes = max(y_train) + 1
 
     # oversampling
@@ -337,7 +423,6 @@ def training_model_evaluate_tensor():
 
     return ""
 
-
 def predict_text(text):
     # with open(__sklearn_regresion, 'rb') as f:
     #     package = pickle.load(f)
@@ -382,14 +467,31 @@ def predict_neural_network_text(text):
     return label[prediksi_mlp]
 
 def predict_LSTM(text):
-    with open(__sklearn_mlp, 'rb') as f:
-        package = pickle.load(f)
-    kalimat_array = package["prep"].transform([text]).toarray()
+    file = open("x_pad_sequences.pickle", 'rb')
+    sequence = pickle.load(file)
+    # file.close()
+    #
+    # file = open("y_labels.pickle", 'rb')
+    # Y = pickle.load(file)
 
-    label = ['POSITIVE', 'NEUTRAL', 'NEGATIVE']
+    file = open('tokenizer.pickle', 'rb')
+    tokenizer = pickle.load(file)
+    file.close()
+
+    cleaned_text = cleanser_string_step(text=text, step=3)
+    tokenize_text = tokenizer.texts_to_sequences([cleaned_text])
+    # print(tokenize_text)
+    text_padding = tf.keras.preprocessing.sequence.pad_sequences(tokenize_text, 500)
+    # print(text_padding)
+    label = ['NEGATIVE', 'NEUTRAL', 'POSITIVE']
     lstm_tensor = tf.keras.models.load_model(__sklearn_tensor_neural_network)
-    a = list(lstm_tensor.predict(kalimat_array)[0])
-    tensor_prediction = (a.index(max(a)))
+    lll = lstm_tensor.predict(text_padding)
+    # print(lll)
+    a = list(list(lll[0]))
+    tensor_prediction = a.index(max(a))
+    # print(a)
+
+
 
     return label[tensor_prediction]
 
@@ -397,7 +499,7 @@ def test_LSTM():
     df = pd.read_sql_query(
         sql=db.select([ProcessedText.kalimat, ProcessedText.sentimen, ProcessedText.kalimat_bersih,
                        ProcessedText.kalimat_bersih_v2, ProcessedText.kalimat_bersih_v3, ProcessedText.jumlah_kata,
-                       ProcessedText.jumlah_kalimat]),
+                       ProcessedText.jumlah_kalimat, ProcessedText.kalimat_bersih_v4]),
         con=db.engine
     )
 
@@ -406,12 +508,13 @@ def test_LSTM():
     # imbalance
     # positif 6383 negatif 3412 netral 1138
     print(f' {len(df[df["sentimen"] == "positive"])} {len(df[df["sentimen"] == "negative"])} {len(df[df["sentimen"] == "neutral"])}')
+    xlabel='kalimat_bersih_v3'
 
     print(df.sentimen.value_counts())
 
-    neg = df.loc[df['sentimen'] == 'negative'].kalimat_bersih.tolist()
-    neu = df.loc[df['sentimen'] == 'neutral'].kalimat_bersih.tolist()
-    pos = df.loc[df['sentimen'] == 'positive'].kalimat_bersih.tolist()
+    neg = df.loc[df['sentimen'] == 'negative'][xlabel].tolist()
+    neu = df.loc[df['sentimen'] == 'neutral'][xlabel].tolist()
+    pos = df.loc[df['sentimen'] == 'positive'][xlabel].tolist()
 
     neg_label = df.loc[df['sentimen'] == 'negative'].sentimen.tolist()
     neu_label = df.loc[df['sentimen'] == 'neutral'].sentimen.tolist()
@@ -435,7 +538,10 @@ def test_LSTM():
     vocab_size = len(tokenizer.word_index)
     maxlen = max(len(x) for x in X)
 
-    X = pad_sequences(X)
+    print(f'vofcab size {vocab_size}, max length of text is {maxlen}')
+    sequence_length = 500
+    # X = pad_sequences(X)
+    X = tf.keras.preprocessing.sequence.pad_sequences(X, maxlen=sequence_length)
     with open('x_pad_sequences.pickle', 'wb') as handle:
         pickle.dump(X, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("x_pad_sequences.pickle has created!")
@@ -455,11 +561,12 @@ def test_LSTM():
     Y = pickle.load(file)
     file.close()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1, stratify=Y)
 
     embed_dim = 100
     units = 64
-    X_train, y_train = over.fit_resample(X_train, y_train)
+    # resample X_train and ytrain
+    # X_train, y_train = over.fit_resample(X_train, y_train)
 
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Embedding(max_features, embed_dim, input_length=X.shape[1]))
@@ -468,13 +575,13 @@ def test_LSTM():
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
 
-    adam = tf.keras.optimizers.Adam(lr=0.001)
+    adam = tf.keras.optimizers.Nadam(lr=0.001)
     model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1)
     history = model.fit(X_train, y_train, epochs=10, batch_size=10, validation_data=(X_test, y_test), verbose=1,
                         callbacks=[es])
-
+    model.save(__sklearn_tensor_neural_network)
     predictions = model.predict(X_test)
     y_pred = predictions
     matrix_test = metrics.classification_report(y_test.argmax(axis=1), y_pred.argmax(axis=1))

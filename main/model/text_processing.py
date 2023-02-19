@@ -273,18 +273,21 @@ class ProcessedText(db.Model):
     kalimat_bersih = db.Column(db.String(512), nullable=False, index=True, default="")
     kalimat_bersih_v2 = db.Column(db.String(512), nullable=False, index=True, default="")
     kalimat_bersih_v3 = db.Column(db.String(512), nullable=False, index=True, default="")
+
+    kalimat_bersih_v4 = db.Column(db.String(512), nullable=False, index=True, default="")
     jumlah_kalimat = db.Column(db.Integer, nullable=False, default="")
 
     jumlah_kata = db.Column(db.Integer, nullable=False, default="")
 
 
 
-    def __init__(self, kalimat, sentimen, kalimat_bersih, kalimat_bersih_v2, kalimat_bersih_v3, jumlah_kalimat, jumlah_kata):
+    def __init__(self, kalimat, sentimen, kalimat_bersih, kalimat_bersih_v2, kalimat_bersih_v3, kalimat_bersih_v4, jumlah_kalimat, jumlah_kata):
         self.kalimat = kalimat
         self.sentimen = sentimen
         self.kalimat_bersih = kalimat_bersih
         self.kalimat_bersih_v2 = kalimat_bersih_v2
         self.kalimat_bersih_v3 = kalimat_bersih_v3
+        self.kalimat_bersih_v4 = kalimat_bersih_v4
         self.jumlah_kalimat = jumlah_kalimat
         self.jumlah_kata = jumlah_kata
 
