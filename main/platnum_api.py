@@ -38,10 +38,11 @@ def text_neural_network():
 @api.route('/text-LSTM', methods=['POST'])
 def text_LSTM():
     text = request.form.get('text', '')
+    text_clean = cleanser_string_step(text=text, step=3)
     json_response = {
         'status_code': 200,
         'raw_text': text,
-        'sentimen': predict_LSTM(text)
+        'sentimen': predict_LSTM(text_clean)
     }
     return jsonify(json_response)
 
@@ -58,28 +59,19 @@ def text_LSTM():
 #     return jsonify(json_response)
 #
 #
-# @swag_from("docs/start_training.yml", methods=['GET','POST'])
-# @api.route('/start_training', methods=['GET','POST'])
-# def ml_training():
-#     result = {}
-#     text = ""
-#     if request.method == 'POST':
-#         print('post')
-#         text = request.form.get('text', '')
-#         result = predict_text(text)
-#     else:
-#         print('get')
-#         # x = text_normalization_on_db_raw_data()
-#         x=test_LSTM()
-#         # x = training_model_evaluate_tensor()
-#         # y = training_model_evaluate()
-#
-#     json_response = {
-#         'status_code': 200,
-#         'raw_text': text,
-#         'result': result
-#     }
-#     return jsonify(json_response)
+@swag_from("docs/start_training_save_model.yml", methods=['GET'])
+@api.route('/start_training_save_model', methods=['GET'])
+def ml_training():
+    result = {}
+    x=test_LSTM()
+    y = training_model_evaluate()
+
+    json_response = {
+        'status_code': 200,
+        'raw_text': 'text',
+        'result': result
+    }
+    return jsonify(json_response)
 #
 # @swag_from("docs/text_input_raw_data.yml", methods=['POST'])
 # @api.route('/text-input_raw_data', methods=['POST'])
@@ -136,7 +128,7 @@ def lstm_file():
     http_code = 200
     """get the file"""
     file = request.files.get('text')
-    limit = int(request.form.get('limit'))
+    limit = int(request.form.get('limit', 0))
     dict_text = {}
 
     if file:
@@ -187,7 +179,7 @@ def neural_network_file():
     http_code = 200
     """get the file"""
     file = request.files.get('text')
-    limit = int(request.form.get('limit'))
+    limit = int(request.form.get('limit', 0))
 
     dict_text = {}
 

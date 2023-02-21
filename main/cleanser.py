@@ -17,7 +17,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 import tensorflow_datasets as tfds
-
+from sklearn.model_selection import cross_validate
 # Machine Learning model
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
@@ -221,23 +221,23 @@ def training_model_evaluate():
     # positif 6383 negatif 3412 netral 1138
     print(f' {len(df[df["sentimen"]=="positive"])} {len(df[df["sentimen"]=="negative"])} {len(df[df["sentimen"]=="neutral"])  }')
     count_vect = CountVectorizer()
-    count_vect.fit(df['kalimat_bersih'])
+    count_vect.fit(df['kalimat_bersih_v3'])
 
     # jumlah unique words
     word_features = count_vect.get_feature_names_out()
     print(f"jumlah unique words: {len(word_features)}")
 
     # Hasil Transformasi
-    transformed = count_vect.transform(df['kalimat_bersih'])
+    transformed = count_vect.transform(df['kalimat_bersih_v3'])
     X = transformed.toarray()
     print(f"Hasil transformasi array shape: {X.shape}")
 
 
     tfidf_vect = TfidfVectorizer()
-    tfidf_vect.fit(df['kalimat_bersih'])
+    tfidf_vect.fit(df['kalimat_bersih_v3'])
 
     # Hasil Transformasi
-    transformed = tfidf_vect.transform(df['kalimat_bersih'])
+    transformed = tfidf_vect.transform(df['kalimat_bersih_v3'])
     X = transformed.toarray()
     print(f"Hasil transformasi array shape: {X.shape}")
     print(X)
@@ -247,90 +247,27 @@ def training_model_evaluate():
 
     # oversampling
 
-
-    X_train, X_test, y_train, y_test = train_test_split(X,y , test_size=0.1, random_state=0)
+    # split with stratiy on
+    X_train, X_test, y_train, y_test = train_test_split(X,y , test_size=0.1, random_state=0, stratify=y)
 
     print(X_train[:10])
     print(y_train.shape)
-    #modeling
-    X_train, y_train = over.fit_resample(X, y)
-    # # regresi
-    # model_1 = LogisticRegression()
-    # model_1.fit(X_train, y_train)
-    # model_1_pred = model_1.predict(X_test)
-    # print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
-    #
-    # # gausian naive bayes
-    # model_2 = GaussianNB()
-    # model_2.fit(X_train, y_train)
-    # model_2_pred = model_2.predict(X_test)
-    # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
-
-    # regresi
-    # model_1 = LogisticRegression()
-    # model_1.fit(X_train, y_train)
-    # model_1_pred = model_1.predict(X_test)
-    # print(f"Accuracy model regresi: {metrics.accuracy_score(y_test, model_1_pred) * 100:.2f}%")
-
-    # gausian naive bayes
-    # model_2 = GaussianNB()
-    # model_2.fit(X_train, y_train)
-    # model_2_pred = model_2.predict(X_test)
-    # print(f"Accuracy model naive bayes: {metrics.accuracy_score(y_test, model_2_pred) * 100:.2f}%")
-
-
-    # MLP(multi-layer perception)/ neural network
+    # create model
     model_3 = MLPClassifier(100)
     model_3.fit(X_train, y_train)
     model_3_pred = model_3.predict(X_test)
     print(f"Accuracy model MLP: {metrics.accuracy_score(y_test, model_3_pred) * 100:.2f}%")
 
-    # knn
-    # model_4 = KNeighborsClassifier()
-    # model_4.fit(X_train, y_train)
-    # model_4_pred = model_4.predict(X_test)
-    #
-    # print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
-
-    # d = {"prep": count_vect, "model": model_1}
-    # with open(__sklearn_regresion, 'wb') as f:
-    #     pickle.dump(d, f)
-    #
-    # d = {"prep": count_vect, "model": model_2}
-    # with open(__sklearn_naive_bayes, 'wb') as f:
-    #     pickle.dump(d, f)
-    # model_4 = KNeighborsClassifier()
-    # model_4.fit(X_train, y_train)
-    # model_4_pred = model_4.predict(X_test)
-    #
-    # print(f"Accuracy model KNN: {metrics.accuracy_score(y_test, model_4_pred) * 100:.2f}%")
-
-    # d = {"prep": count_vect, "model": model_1}
-    # with open(__sklearn_regresion, 'wb') as f:
-    #     pickle.dump(d, f)
-    #
-    # d = {"prep": count_vect, "model": model_2}
-    # with open(__sklearn_naive_bayes, 'wb') as f:
-    #     pickle.dump(d, f)
-
+    # save model
     d = {"prep": count_vect, "model": model_3}
     with open(__sklearn_mlp, 'wb') as f:
         pickle.dump(d, f)
 
-    # d = {"prep": count_vect, "model": model_4}
-    # with open(__sklearn_knn, 'wb') as f:
-    #     pickle.dump(d, f)
-
-    # d = {"prep": count_vect, "model": model_4}
-    # with open(__sklearn_knn, 'wb') as f:
-    #     pickle.dump(d, f)
-
-
-
-
+    print(cross_validation(model=model_3, _X=X_test, _y=y_test))
     return ""
 
 def training_model_evaluate_tensor():
+    # vanilla model. not used
     df = pd.read_sql_query(
         sql=db.select([ProcessedText.kalimat, ProcessedText.sentimen, ProcessedText.kalimat_bersih,
                        ProcessedText.kalimat_bersih_v2, ProcessedText.kalimat_bersih_v3, ProcessedText.jumlah_kata,
@@ -379,9 +316,6 @@ def training_model_evaluate_tensor():
     print(np.max(X_train[0]))
     print(str(y_train))
 
-    # tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=max_features)
-    # X_train = tokenizer.sequences_to_matrix(X_train, mode='weight')
-    # X_test = tokenizer.sequences_to_matrix(X_test, mode='weight')
 
     y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     y_test = tf.keras.utils.to_categorical(y_test, num_classes)
@@ -424,22 +358,7 @@ def training_model_evaluate_tensor():
     return ""
 
 def predict_text(text):
-    # with open(__sklearn_regresion, 'rb') as f:
-    #     package = pickle.load(f)
-    #
-
-    # prediksi_reg = package["model"].predict(kalimat_array)[0]
-    #
-    # with open(__sklearn_naive_bayes, 'rb') as f:
-    #     package = pickle.load(f)
-    #
-    # prediksi_nb = package["model"].predict(kalimat_array)[0]
-    #
-    # with open(__sklearn_knn, 'rb') as f:
-    #     package = pickle.load(f)
-    #
-    # prediksi_knn = package["model"].predict(kalimat_array)[0]
-
+    # not used
     with open(__sklearn_mlp, 'rb') as f:
         package = pickle.load(f)
     kalimat_array = package["prep"].transform([text]).toarray()
@@ -457,6 +376,7 @@ def predict_text(text):
     return data
 
 def predict_neural_network_text(text):
+    # MLP prediction rom saved model
     with open(__sklearn_mlp, 'rb') as f:
         package = pickle.load(f)
     kalimat_array = package["prep"].transform([text]).toarray()
@@ -467,6 +387,7 @@ def predict_neural_network_text(text):
     return label[prediksi_mlp]
 
 def predict_LSTM(text):
+    #LSTM prediction rom saved model
     file = open("x_pad_sequences.pickle", 'rb')
     sequence = pickle.load(file)
     # file.close()
@@ -491,11 +412,10 @@ def predict_LSTM(text):
     tensor_prediction = a.index(max(a))
     # print(a)
 
-
-
     return label[tensor_prediction]
 
 def test_LSTM():
+    # create model and save
     df = pd.read_sql_query(
         sql=db.select([ProcessedText.kalimat, ProcessedText.sentimen, ProcessedText.kalimat_bersih,
                        ProcessedText.kalimat_bersih_v2, ProcessedText.kalimat_bersih_v3, ProcessedText.jumlah_kata,
@@ -587,4 +507,49 @@ def test_LSTM():
     matrix_test = metrics.classification_report(y_test.argmax(axis=1), y_pred.argmax(axis=1))
     print("Testing selesai")
     print(matrix_test)
+
     return ""
+
+
+def cross_validation(model, _X, _y, _cv=5):
+    '''Function to perform 5 Folds Cross-Validation
+     Parameters
+     ----------
+    model: Python Class, default=None
+            This is the machine learning algorithm to be used for training.
+    _X: array
+         This is the matrix of features.
+    _y: array
+         This is the target variable.
+    _cv: int, default=5
+        Determines the number of folds for cross-validation.
+     Returns
+     -------
+     The function returns a dictionary containing the metrics 'accuracy', 'precision',
+     'recall', 'f1' for both training set and validation set.
+    '''
+    _scoring = ['accuracy', 'precision', 'recall', 'f1']
+    results = cross_validate(estimator=model,
+                             X=_X,
+                             y=_y,
+                             cv=_cv,
+                             scoring=_scoring,
+                             return_train_score=True)
+
+    return {"Training Accuracy scores": results['train_accuracy'],
+            "Mean Training Accuracy": results['train_accuracy'].mean() * 100,
+            "Training Precision scores": results['train_precision'],
+            "Mean Training Precision": results['train_precision'].mean(),
+            "Training Recall scores": results['train_recall'],
+            "Mean Training Recall": results['train_recall'].mean(),
+            "Training F1 scores": results['train_f1'],
+            "Mean Training F1 Score": results['train_f1'].mean(),
+            "Validation Accuracy scores": results['test_accuracy'],
+            "Mean Validation Accuracy": results['test_accuracy'].mean() * 100,
+            "Validation Precision scores": results['test_precision'],
+            "Mean Validation Precision": results['test_precision'].mean(),
+            "Validation Recall scores": results['test_recall'],
+            "Mean Validation Recall": results['test_recall'].mean(),
+            "Validation F1 scores": results['test_f1'],
+            "Mean Validation F1 Score": results['test_f1'].mean()
+            }

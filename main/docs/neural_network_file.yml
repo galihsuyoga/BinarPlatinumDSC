@@ -12,7 +12,7 @@ parameters:
     name: limit
     schema:
       type: integer
-    description: The numbers of items to clean and predict
+    description: The numbers of items to clean and predict 0 or empty for all
     required: true
 
 responses:
